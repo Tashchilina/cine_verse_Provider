@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "92229831877",
+    "project_id": "cineverse-58d8b",
+    "storage_bucket": "cineverse-58d8b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:92229831877:android:d545795b513ba05313b4ac",
+        "android_client_info": {
+          "package_name": "com.example.cine_verse"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "92229831877-g32hit7n3t80ok8iigd4q0fb4492mqkb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.cine_verse",
+            "certificate_hash": "77dd9a3092be9a11514cbf3050bb204c1e9008ba"
+          }
+        },
+        {
+          "client_id": "92229831877-6g6jt89rk73bh8eacdhfjkp0gfb1u92c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApz0bHsK3K2iZeoxCgdZ7penikLDEzEJM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "92229831877-6g6jt89rk73bh8eacdhfjkp0gfb1u92c.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
