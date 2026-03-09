@@ -8,38 +8,86 @@ class AuthRemoteDatasource {
   AuthRemoteDatasource(this._firebaseAuth, this._googleSignIn);
 
   Future<UserCredential> signInWithEmail(String email, String password) async {
-    return await _firebaseAuth.signInWithEmailAndPassword(
+    // Здесь rethrow не нужен, так как ошибка сама пробросится в Repository
+    return await _firebaseAuth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
   }
 
-  /// Вход через Google
   Future<UserCredential> signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser =
-      await _googleSignIn.signIn();
+      // 1. Начинаем процесс выбора аккаунта
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
-        throw Exception('Вход отменен пользователем');
+        throw FirebaseAuthException(
+          code: 'ERROR_ABORTED_BY_USER',
+          message: 'Вход отменен пользователем',
+        );
       }
 
+      // 2. Получаем токены аутентификации
       final GoogleSignInAuthentication googleAuth =
-      await googleUser.authentication;
+          await googleUser.authentication;
+
+      // Проверка наличия токенов (защита от крешей)
+      if (googleAuth.accessToken == null && googleAuth.idToken == null) {
+        throw FirebaseAuthException(
+          code: 'ERROR_MISSING_GOOGLE_AUTH_TOKEN',
+          message: 'Отсутствуют токены аутентификации Google',
+        );
+      }
 
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
+      // 3. Авторизуемся в Firebase с полученными данными
       return await _firebaseAuth.signInWithCredential(credential);
+    } on FirebaseAuthException {
+      rethrow; // Пробрасываем типизированную ошибку Firebase в репозиторий
     } catch (e) {
-      throw Exception(e.toString());
+      // Если упало что-то специфичное для GoogleSignIn (например, нет сервисов Google)
+      throw FirebaseAuthException(
+        code: 'google_sign_in_failed',
+        message: e.toString(),
+      );
     }
+  }
+
+  Future<void> verifyPhoneNumber({
+    required String phoneNumber,
+    required Function(String verificationId) onCodeSent,
+    required Function(FirebaseAuthException e) onError,
+  }) async {
+    await _firebaseAuth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        // Можно оставить пустым или реализовать авто-вход
+      },
+      verificationFailed: onError,
+      codeSent: (verificationId, resendToken) => onCodeSent(verificationId),
+      codeAutoRetrievalTimeout: (verificationId) {},
+    );
+  }
+
+  Future<UserCredential> signInWithOtp(
+    String verificationId,
+    String smsCode,
+  ) async {
+    AuthCredential credential = PhoneAuthProvider.credential(
+      verificationId: verificationId,
+      smsCode: smsCode,
+    );
+    return await _firebaseAuth.signInWithCredential(credential);
   }
 
   Future<void> signOut() async {
     await _firebaseAuth.signOut();
+    // Изменение: используем signOut для выхода,
+    // или disconnect(), если хотим полностью разорвать связь с текущим Google-аккаунтом
     await _googleSignIn.signOut();
   }
 }
