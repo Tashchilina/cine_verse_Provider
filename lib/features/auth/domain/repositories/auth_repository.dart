@@ -21,4 +21,5 @@ abstract class AuthRepository {
     required String verificationId,
     required String smsCode,
   });
+  Future<UserEntity?> getCurrentUser();
 }

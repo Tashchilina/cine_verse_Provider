@@ -1,10 +1,26 @@
-import 'package:cine_verse/features/auth/domain/repositories/auth_repository.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import '../../domain/entities/user.dart';
+import '../../domain/repositories/auth_repository.dart';
+
 
 class AuthNotifier extends ChangeNotifier {
   final AuthRepository _repository;
+  UserEntity? _user;
 
-  AuthNotifier(this._repository);
+  AuthNotifier(this._repository) {
+    _checkInitialAuth();
+  }
+
+  UserEntity? get user => _user;
+  bool get isAuthenticated => _user != null;
+
+
+  Future<void> _checkInitialAuth() async {
+    _user = await _repository.getCurrentUser();
+    notifyListeners();
+  }
 
   bool _isLoading = false;
   String _errorMessage = '';
@@ -31,9 +47,13 @@ class AuthNotifier extends ChangeNotifier {
       (failure) async {
         _errorMessage = failure.message;
       },
-      (user) async {
+      (userEntity) async {
+        _user = userEntity;
         // СОХРАНЕНИЕ В DATABASE
-        await _repository.saveUserToDatabase(user, 'email');
+        await _repository.saveUserToDatabase(userEntity, 'email');
+
+        _isLoading = false;
+        notifyListeners();
 
         if (onSuccess != null) onSuccess();
       },
@@ -58,9 +78,8 @@ class AuthNotifier extends ChangeNotifier {
       },
       (user) async {
         await _repository.saveUserToDatabase(user, 'google');
-
-        _isLoading =
-            false; // Сначала останавливаем загрузку и уведомляем слушателей
+        _user = user;
+        _isLoading = false; // Сначала останавливаем загрузку и уведомляем слушателей
         notifyListeners();
 
         if (onSuccess != null) {
@@ -114,10 +133,17 @@ class AuthNotifier extends ChangeNotifier {
       },
       (user) async {
         await _repository.saveUserToDatabase(user, 'phone');
+        _user = user;
         _isLoading = false;
         notifyListeners();
-        onSuccess();
+        if (onSuccess != null) onSuccess();
       },
     );
+  }
+
+  Future<void> logout() async {
+    await _repository.signOut();
+    _user = null;
+    notifyListeners();
   }
 }

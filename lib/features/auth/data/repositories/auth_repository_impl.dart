@@ -130,4 +130,15 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(AuthFailure("Ошибка входа по коду"));
     }
   }
+
+  @override
+  Future<UserEntity?> getCurrentUser() async {
+    final firebaseUser = FirebaseAuth.instance.currentUser;
+    if (firebaseUser != null) {
+      // Здесь 'unknown', так как мы не знаем метод входа при холодном старте,
+      // либо можно расширить логику проверки providerData
+      return UserModel.fromFirebase(firebaseUser, 'saved_session');
+    }
+    return null;
+  }
 }

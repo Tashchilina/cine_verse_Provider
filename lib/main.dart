@@ -1,9 +1,12 @@
+import 'package:cine_verse/features/auth/domain/repositories/auth_repository.dart';
 import 'package:cine_verse/features/auth/presentation/controllers/auth_notifier.dart';
+import 'package:cine_verse/features/auth/presentation/controllers/auth_wrapper.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'di/dependency_injection.dart';
-import 'features/auth/presentation/screens/login_page.dart';
+import 'features/auth/presentation/controllers/movie_provider.dart';
+import 'features/auth/presentation/controllers/navigation_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,14 +20,19 @@ class MyApp extends StatelessWidget {
 
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => sl<AuthNotifier>())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => sl<AuthNotifier>()),
+        ChangeNotifierProvider(create: (_) => NavigationProvider()),
+        ChangeNotifierProvider(create: (_) => MovieProvider()..fetchMovies()),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Cine Verse',
-        theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+        theme: ThemeData(
+          colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+          useMaterial3: true,
         ),
-        home: LoginPage(),
+        home: AuthWrapper(),
       ),
     );
   }
