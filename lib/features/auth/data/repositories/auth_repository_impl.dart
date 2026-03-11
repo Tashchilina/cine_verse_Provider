@@ -4,20 +4,29 @@ import 'package:cine_verse/features/auth/domain/repositories/auth_repository.dar
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../domain/entities/user.dart';
 import '../models/user_model.dart';
-import 'auth_repository_impl.dart' as remoteDatasource;
+
 
 class AuthRepositoryImpl implements AuthRepository {
+  final FirebaseAuth _firebaseAuth;
+  final GoogleSignIn _googleSignIn;
   final AuthRemoteDatasource remoteDatasource;
 
-  AuthRepositoryImpl(this.remoteDatasource);
+  AuthRepositoryImpl({
+    FirebaseAuth? firebaseAuth,
+    GoogleSignIn? googleSignIn,
+    required this.remoteDatasource,
+  })
+      : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
+        _googleSignIn = googleSignIn ?? GoogleSignIn();
 
   @override
   Future<Either<Failure, UserEntity>> signInWithEmail(
-    String email,
-    String password,
-  ) async {
+      String email,
+      String password,
+      ) async {
     try {
       final credential = await remoteDatasource.signInWithEmail(
         email,
@@ -38,9 +47,37 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, UserEntity>> signInWithGoogle() async {
     try {
-      final credential = await remoteDatasource.signInWithGoogle();
-      return Right(UserModel.fromFirebase(credential.user!, 'google'));
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return Left(AuthFailure("Вход отменен"));
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final currentUser = _firebaseAuth.currentUser;
+      if (currentUser != null) {
+        final userCredential = await currentUser.linkWithCredential(credential);
+        return Right(UserModel.fromFirebase(userCredential.user!, 'google'));
+      }
+
+      try {
+        final userCredential = await _firebaseAuth.signInWithCredential(credential);
+        return Right(UserModel.fromFirebase(userCredential.user!, 'google'));
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'account-exists-with-different-credential') {
+          return Left(AuthFailure(
+              "Этот email уже зарегистрирован через пароль. Войдите по Email, а затем привяжите Google в профиле."
+          ));
+        }
+        rethrow;
+      }
+
     } on FirebaseAuthException catch (e) {
+      if (e.code == 'credential-already-in-use') {
+        return Left(AuthFailure("Этот Google-аккаунт уже привязан к другой учетной записи."));
+      }
       return Left(AuthFailure(_mapFirebaseError(e.code)));
     } catch (e) {
       return Left(AuthFailure(e.toString()));

@@ -6,17 +6,19 @@ import '../../data/models/movie_model.dart';
 
 class MovieProvider extends ChangeNotifier {
   final Dio _dio = Dio();
-  final String _apiKey = '098e9603425cf9ff10f1e720b0348026';
+  final String _apiKey = '789137b748377c5eede43ec1d00445cb';
   final String _baseUrl = 'https://api.themoviedb.org/3';
 
   List<Movie> _popularMovies = [];
   List<Movie> _newMovies = [];
   List<Movie> _searchedMovies = [];
+  List<Movie> _favoriteMovies = [];
   bool _isLoading = false;
 
   List<Movie> get popularMovies => _popularMovies;
   List<Movie> get newMovies => _newMovies;
   List<Movie> get searchedMovies => _searchedMovies;
+  List<Movie> get favoriteMovies => _favoriteMovies;
   bool get isLoading => _isLoading;
 
   Timer? _debounce;
@@ -56,6 +58,10 @@ class MovieProvider extends ChangeNotifier {
   }
 
   Future<void> searchMovies(String query) async {
+    if (query.trim().isEmpty) {
+      clearSearch();
+      return;
+    }
     // Если запрос пустой, очищаем список и выходим
     if (query.isEmpty) {
       _searchedMovies = [];
@@ -92,5 +98,26 @@ class MovieProvider extends ChangeNotifier {
   void dispose() {
     _debounce?.cancel();
     super.dispose();
+  }
+
+  void clearSearch() {
+    _searchedMovies = [];
+    _debounce?.cancel();
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  void toggleFavorite(Movie movie) {
+    final isExist = _favoriteMovies.any((m) => m.id == movie.id);
+    if (isExist) {
+      _favoriteMovies.removeWhere((m) => m.id == movie.id);
+    } else {
+      _favoriteMovies.add(movie);
+    }
+    notifyListeners();
+  }
+
+  bool isFavorite(Movie movie) {
+    return _favoriteMovies.any((m) => m.id == movie.id);
   }
 }

@@ -1,6 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cine_verse/features/auth/data/models/user_model.dart';
 import 'package:flutter/material.dart';
-
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 
@@ -72,9 +71,14 @@ class AuthNotifier extends ChangeNotifier {
 
     await result.fold(
       (failure) async {
-        _errorMessage = failure.message;
-        _isLoading = false; // Останавливаем загрузку при ошибке
-        notifyListeners();
+        // Проверка, если ошибка говорит, что такой email уже есть
+        if (failure.message.contains('account-exists-with-different-credential')) {
+          await _handleLinking(onSuccess);
+        } else {
+          _errorMessage = failure.message;
+          _isLoading = false; // Останавливаем загрузку при ошибке
+          notifyListeners();
+        }
       },
       (user) async {
         await _repository.saveUserToDatabase(user, 'google');
@@ -84,7 +88,7 @@ class AuthNotifier extends ChangeNotifier {
 
         if (onSuccess != null) {
           Future.microtask(() => onSuccess());
-        } // И только потом делаем переход
+        }
       },
     );
   }
@@ -145,5 +149,44 @@ class AuthNotifier extends ChangeNotifier {
     await _repository.signOut();
     _user = null;
     notifyListeners();
+  }
+
+  Future<void> _handleLinking(VoidCallback? onSuccess) async {
+    try {
+      final result = await _repository.signInWithGoogle();
+
+      await result.fold(
+            (failure) async {
+          _errorMessage = failure.message;
+          _isLoading = false;
+          notifyListeners();
+        },
+            (user) async {
+          await _repository.saveUserToDatabase(user, 'google');
+          _user = user;
+          _isLoading = false;
+          notifyListeners();
+
+          if (onSuccess != null) {
+            Future.microtask(() => onSuccess());
+          }
+        },
+      );
+    } catch (e) {
+      _errorMessage = "Ошибка привязки аккаунта";
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void updateProfile({String? name, String? imageUrl, String? link}) {
+    if (_user != null) {
+      _user = _user!.copyWith(
+        name: name,
+        photoURL: imageUrl,
+        userLink: link,
+      );
+      notifyListeners(); // Теперь AppBar и ProfilePage обновятся мгновенно
+    }
   }
 }

@@ -1,8 +1,12 @@
+import 'package:cine_verse/features/auth/presentation/screens/movie_details.dart';
 import 'package:flutter/material.dart';
 import '../../data/models/movie_model.dart';
 
 Widget BuildMovieGrid(List<Movie> movies) {
-  if (movies.isEmpty) return const Center(child: Text("Нет данных", style: TextStyle(color: Colors.white)));
+  if (movies.isEmpty)
+    return const Center(
+      child: Text("No data available", style: TextStyle(color: Colors.white)),
+    );
 
   return SizedBox(
     height: 250,
@@ -14,7 +18,10 @@ Widget BuildMovieGrid(List<Movie> movies) {
         final movie = movies[index];
         return GestureDetector(
           onTap: () {
-            // Переход на Movie Details (согласно навигации 4.1)
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => MovieDetailsPage(movie: movie)),
+            );
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,7 +44,11 @@ Widget BuildMovieGrid(List<Movie> movies) {
                   movie.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],

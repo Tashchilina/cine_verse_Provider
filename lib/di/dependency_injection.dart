@@ -35,7 +35,11 @@ Future<void> init() async {
 
   // --- Repositories ---
   sl.registerLazySingleton<AuthRepository>(
-        () => AuthRepositoryImpl(sl()),
+        () => AuthRepositoryImpl(
+          remoteDatasource: sl<AuthRemoteDatasource>(),
+          firebaseAuth: sl<FirebaseAuth>(),
+          googleSignIn: sl<GoogleSignIn>(),
+        ),
   );
 
   sl.registerFactory(() => AuthNotifier(sl<AuthRepository>()));
