@@ -1,5 +1,5 @@
-import 'package:cine_verse/features/auth/data/models/user_model.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 
@@ -7,6 +7,10 @@ import '../../domain/repositories/auth_repository.dart';
 class AuthNotifier extends ChangeNotifier {
   final AuthRepository _repository;
   UserEntity? _user;
+  String? _localPhotoPath;
+  String? get localPhotoPath => _localPhotoPath;
+  bool _isWaitingForPhone = false;
+  bool get isWaitingForPhone => _isWaitingForPhone;
 
   AuthNotifier(this._repository) {
     _checkInitialAuth();
@@ -76,14 +80,15 @@ class AuthNotifier extends ChangeNotifier {
           await _handleLinking(onSuccess);
         } else {
           _errorMessage = failure.message;
-          _isLoading = false; // Останавливаем загрузку при ошибке
+          _isLoading = false;
           notifyListeners();
         }
       },
       (user) async {
         await _repository.saveUserToDatabase(user, 'google');
         _user = user;
-        _isLoading = false; // Сначала останавливаем загрузку и уведомляем слушателей
+        _isWaitingForPhone = true;
+        _isLoading = false;
         notifyListeners();
 
         if (onSuccess != null) {
@@ -138,6 +143,7 @@ class AuthNotifier extends ChangeNotifier {
       (user) async {
         await _repository.saveUserToDatabase(user, 'phone');
         _user = user;
+        _isWaitingForPhone = false;
         _isLoading = false;
         notifyListeners();
         if (onSuccess != null) onSuccess();
@@ -149,6 +155,7 @@ class AuthNotifier extends ChangeNotifier {
     await _repository.signOut();
     _user = null;
     notifyListeners();
+    await GoogleSignIn().signOut();
   }
 
   Future<void> _handleLinking(VoidCallback? onSuccess) async {
@@ -188,5 +195,10 @@ class AuthNotifier extends ChangeNotifier {
       );
       notifyListeners(); // Теперь AppBar и ProfilePage обновятся мгновенно
     }
+  }
+
+  void updateLocalPhoto(String path) {
+    _localPhotoPath = path;
+    notifyListeners(); // Это заставит AppBar и ProfilePage обновиться
   }
 }

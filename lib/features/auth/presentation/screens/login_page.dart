@@ -37,26 +37,14 @@ class _LoginPageState extends State<LoginPage> {
                 physics: const BouncingScrollPhysics(),
                 child: Column(
                   children: [
-                    SizedBox(height: MediaQuery
-                        .of(context)
-                        .size
-                        .height * 0.4),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.4),
 
                     // Кнопка Google
                     _buildAuthButton(
                       text: 'Sign in with Google',
                       icon: FontAwesomeIcons.google,
                       onPressed: () {
-                        auth.signInWithGoogle(
-                            onSuccess: () {
-                              if (!mounted) return;
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                Navigator.push(context, MaterialPageRoute(
-                                    builder: (context) => const PhonePage()),
-                                );
-                              });
-                            }
-                        );
+                        auth.signInWithGoogle(onSuccess: () {});
                       },
                     ),
 
@@ -70,7 +58,8 @@ class _LoginPageState extends State<LoginPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const EmailPage()),
+                            builder: (context) => const EmailPage(),
+                          ),
                         );
                       },
                     ),
@@ -83,7 +72,8 @@ class _LoginPageState extends State<LoginPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const PhonePage()),
+                            builder: (context) => const PhonePage(),
+                          ),
                         );
                       },
                     ),
@@ -97,7 +87,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // Вынес кнопку в метод, чтобы не дублировать код декораций
   Widget _buildAuthButton({
     required String text,
     required IconData icon,
@@ -114,7 +103,6 @@ class _LoginPageState extends State<LoginPage> {
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.white.withOpacity(0.1),
-          // Прозрачность для красоты
           shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(36),

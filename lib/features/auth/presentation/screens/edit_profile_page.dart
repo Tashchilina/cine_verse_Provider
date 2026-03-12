@@ -14,7 +14,6 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _nameController;
   late TextEditingController _linkController;
-  String? _selectedImagePath; // Храним путь к новому выбранному фото
 
   @override
   void initState() {
@@ -26,17 +25,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   // Функция выбора фото из галереи
   Future<void> _pickImage() async {
-    try {
-      final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
-      if (image != null) {
-        setState(() {
-          _selectedImagePath = image.path;
-        });
-      }
-    } catch (e) {
-      print("Ошибка при выборе изображения: $e");
+    if (image != null) {
+      context.read<AuthNotifier>().updateLocalPhoto(image.path);
     }
   }
 
@@ -49,7 +42,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.read<AuthNotifier>();
+    final auth = context.watch<AuthNotifier>();
     final user = auth.user;
 
     return Scaffold(
@@ -74,13 +67,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   CircleAvatar(
                     radius: 60,
                     backgroundColor: Colors.grey[800],
-                    backgroundImage: _selectedImagePath != null
-                        ? FileImage(File(_selectedImagePath!)) as ImageProvider
+                    backgroundImage: auth.localPhotoPath != null
+                        ? FileImage(File(auth.localPhotoPath!))
                         : (user?.photoURL != null
-                              ? NetworkImage(user!.photoURL!)
-                              : null),
+                                  ? NetworkImage(user!.photoURL!)
+                                  : null)
+                              as ImageProvider?,
                     child:
-                        (_selectedImagePath == null && user?.photoURL == null)
+                        (auth.localPhotoPath == null && user?.photoURL == null)
                         ? const Icon(
                             Icons.camera_alt,
                             size: 40,
@@ -143,7 +137,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     name: _nameController.text,
                     link: _linkController.text,
                     imageUrl:
-                        _selectedImagePath, // Передаем путь к файлу или URL
+                        auth.localPhotoPath, // Передаем путь к файлу или URL
                   );
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(

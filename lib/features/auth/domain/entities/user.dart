@@ -8,6 +8,7 @@ class UserEntity {
   final String? displayName;
   final String? photoURL;
   final String? userLink;
+  final String? localPhotoPath;
 
   const UserEntity({
     required this.id,
@@ -19,12 +20,14 @@ class UserEntity {
     this.displayName,
     this.photoURL,
     this.userLink,
+    this.localPhotoPath,
   });
 
   UserEntity copyWith({
     String? name,
     String? photoURL,
     String? userLink,
+    String? localPhotoPath,
   }) {
     return UserEntity(
       id: this.id,
@@ -36,6 +39,7 @@ class UserEntity {
       method: this.method,
       providers: providers ?? this.providers,
       displayName: displayName ?? this.displayName,
+      localPhotoPath: localPhotoPath ?? this.localPhotoPath,
     );
   }
 }

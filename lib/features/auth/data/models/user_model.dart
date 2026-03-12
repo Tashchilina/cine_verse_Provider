@@ -4,14 +4,15 @@ import '../../domain/entities/user.dart';
 class UserModel extends UserEntity {
   const UserModel({
     required super.id,
-    required super.name, // Добавлено: обязательное поле из Entity
+    required super.name,
     required super.email,
     required super.lastLogin,
     required super.method,
     super.providers,
     super.displayName,
     super.photoURL,
-    super.userLink, // Добавлено: для хранения ссылки/ника
+    super.userLink,
+    super.localPhotoPath,
   });
 
   factory UserModel.fromFirebase(firebase.User firebaseUser, String authMethod) {

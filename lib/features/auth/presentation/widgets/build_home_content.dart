@@ -1,4 +1,4 @@
-import 'package:cine_verse/features/auth/presentation/screens/search.dart';
+import 'package:cine_verse/features/auth/presentation/screens/search_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/movie_provider.dart';

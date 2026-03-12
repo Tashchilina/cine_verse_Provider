@@ -1,6 +1,6 @@
 import 'package:cine_verse/features/auth/presentation/controllers/navigation_provider.dart';
-import 'package:cine_verse/features/auth/presentation/screens/favorites.dart';
-import 'package:cine_verse/features/auth/presentation/screens/profile.dart';
+import 'package:cine_verse/features/auth/presentation/screens/favorites_page.dart';
+import 'package:cine_verse/features/auth/presentation/screens/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/movie_provider.dart';

@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:cine_verse/features/auth/presentation/screens/linked_account_page.dart';
+import 'package:cine_verse/features/auth/presentation/screens/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_notifier.dart';
@@ -16,13 +19,14 @@ class ProfilePage extends StatelessWidget {
       body: Column(
         children: [
           const SizedBox(height: 50),
-          // Фото, Имя и Ссылка
           CircleAvatar(
-            radius: 50,
-            backgroundImage: user?.photoURL != null
-                ? NetworkImage(user!.photoURL!)
+            radius: 15,
+            backgroundImage: auth.localPhotoPath != null
+                ? FileImage(File(auth.localPhotoPath!))
+                : (user?.photoURL != null ? NetworkImage(user!.photoURL!) : null) as ImageProvider?,
+            child: (auth.localPhotoPath == null && user?.photoURL == null)
+                ? const Icon(Icons.person, size: 20)
                 : null,
-            child: user?.photoURL == null ? const Icon(Icons.person, size: 50) : null,
           ),
           const SizedBox(height: 15),
           Text(user?.name ?? "Guest", style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
@@ -31,8 +35,8 @@ class ProfilePage extends StatelessWidget {
           const SizedBox(height: 30),
           // Меню навигации [cite: 426, 427, 429]
           _buildMenuItem(Icons.edit, "Edit Profile", () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfilePage()))),
-          _buildMenuItem(Icons.settings, "Settings", () {/* Навигация в Settings */}),
-          _buildMenuItem(Icons.link, "Linked Accounts", () {/* Навигация в Linked Accounts */}),
+          _buildMenuItem(Icons.settings, "Settings", () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage()))),
+          _buildMenuItem(Icons.link, "Linked Accounts", () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LinkedAccountPage()))),
         ],
       ),
     );
