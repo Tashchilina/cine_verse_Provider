@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cine_verse/shared/services/favorites_storage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import '../../data/models/movie_model.dart';
@@ -8,11 +9,13 @@ class MovieProvider extends ChangeNotifier {
   final Dio _dio = Dio();
   final String _apiKey = '789137b748377c5eede43ec1d00445cb';
   final String _baseUrl = 'https://api.themoviedb.org/3';
+  final FavoritesStorage _storage = FavoritesStorage();
 
   List<Movie> _popularMovies = [];
   List<Movie> _newMovies = [];
   List<Movie> _searchedMovies = [];
   List<Movie> _favoriteMovies = [];
+  List<Movie> allMovies = [];
   bool _isLoading = false;
 
   List<Movie> get popularMovies => _popularMovies;
@@ -114,10 +117,17 @@ class MovieProvider extends ChangeNotifier {
     } else {
       _favoriteMovies.add(movie);
     }
+    _storage.saveFavorites(_favoriteMovies.map((m) => m.id).toList());
     notifyListeners();
   }
 
   bool isFavorite(Movie movie) {
     return _favoriteMovies.any((m) => m.id == movie.id);
+  }
+
+  Future<void> init() async {
+    final savedIds = await _storage.loadFavorites();
+    _favoriteMovies = allMovies.where((m) => savedIds.contains(m.id)).toList();
+    notifyListeners();
   }
 }

@@ -1,7 +1,6 @@
 import 'package:cine_verse/features/auth/presentation/controllers/movie_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../widgets/build_favorite_card.dart';
 
 class FavoritesPage extends StatefulWidget {
@@ -12,6 +11,12 @@ class FavoritesPage extends StatefulWidget {
 }
 
 class _FavoritesPageState extends State<FavoritesPage> {
+
+  @override
+  void initState() {
+    Future.microtask(() => context.read<MovieProvider>().init());
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<MovieProvider>();
